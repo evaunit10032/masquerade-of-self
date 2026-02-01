@@ -44,6 +44,8 @@ public class Player_WeaponMaster : MonoBehaviour
         ///              ///
         // Switch Weapons //
         ///              ///
+        ///              
+        /*
         if ((Input.GetKeyDown(KeyCode.Alpha1) || (currentWeapon == weaponList[3] && Input.mouseScrollDelta.y > 0) || (currentWeapon == weaponList[2] && Input.mouseScrollDelta.y < 0)) && usableWeapons[1])
         {
             if (currentWeapon != weaponList[1])
@@ -85,7 +87,7 @@ public class Player_WeaponMaster : MonoBehaviour
                 GunHandle.transform.rotation = currentWeapon.GetHandle().rotation;
                 UpdateUI();
             }
-        }
+        }*/
     }
 
     public void SetCantFire(bool input)
