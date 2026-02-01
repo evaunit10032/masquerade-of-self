@@ -16,6 +16,7 @@ public class NewBehaviourScript : MonoBehaviour
     [SerializeField] private float disengageTime = 5f;
     [SerializeField] private float attackRange = 1.5f;
     [SerializeField] private bool canMoveWhileAttacking = false;
+    [SerializeField] private float lurkingDuration = 3f;
 
     private NavMeshAgent _agent;
     private Animator _animator;
@@ -24,12 +25,14 @@ public class NewBehaviourScript : MonoBehaviour
     private EnemyState _currentState;
     private float _timeSinceLastSeenPlayer;
     private bool _isAttacking;
+    private Vector3 _lastKnownPlayerPosition;
 
     private enum EnemyState
     {
         Patrolling,
         Chasing,
-        Attacking
+        Attacking, 
+        searching
     }
 
     private IEnumerator WaitAtPatrolPoint()
@@ -77,6 +80,12 @@ public class NewBehaviourScript : MonoBehaviour
     private void FollowPlayer()
     {
         _agent.SetDestination(playerTransform.position);
+        _lastKnownPlayerPosition = playerTransform.position;
+    }
+
+    private void LurkAtLastKnownPosition()
+    {
+        _agent.SetDestination(_lastKnownPlayerPosition);
     }
 
 
@@ -103,6 +112,7 @@ public class NewBehaviourScript : MonoBehaviour
         
         _isAttacking = true;
         _animator.SetTrigger("attack");
+        //Don't forgor, once we get the animation event, call FinishAttack after that amount of time
     }
 
 //This method can be invoked by
@@ -172,6 +182,19 @@ public class NewBehaviourScript : MonoBehaviour
                     _agent.isStopped = false;
                 }
 
+                break;
+            case EnemyState.searching:
+                _timeSinceLastSeenPlayer += Time.deltaTime;
+                if (_timeSinceLastSeenPlayer >= lurkingDuration)
+                {
+                    _currentState = EnemyState.Patrolling;
+                    _timeSinceLastSeenPlayer = 0f;
+                    GoToNextPatrolPoint();
+                }
+                else
+                {
+                    LurkAtLastKnownPosition();
+                }
                 break;
         }
 
