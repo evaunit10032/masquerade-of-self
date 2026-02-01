@@ -34,6 +34,12 @@ public class Player_WeaponMaster : MonoBehaviour
 
     private bool cantFire = false;
 
+
+    private void Start()
+    {
+        UIEvents.SendAmmoReadout(currentWeapon.loadedAmmo);
+    }
+
     private void Update()
     {
         //Reload and break aim
@@ -156,6 +162,7 @@ public class Player_WeaponMaster : MonoBehaviour
             if(!currentWeapon.automatic)
             {
                 currentWeapon.loadedAmmo--;
+                UIEvents.SendAmmoReadout(currentWeapon.loadedAmmo);
             }
             
             UpdateUI();
@@ -181,7 +188,7 @@ public class Player_WeaponMaster : MonoBehaviour
             int freshBullets = currentWeapon.clipSize - currentWeapon.loadedAmmo;
 
             currentWeapon.loadedAmmo += freshBullets;
-
+            UIEvents.SendAmmoReadout(currentWeapon.loadedAmmo);
             /*
             if (storedBullets[currentWeaponAmmoType] - freshBullets < 0)
             {

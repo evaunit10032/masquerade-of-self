@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class DualGuns : OneBitGun
@@ -25,6 +26,9 @@ public class DualGuns : OneBitGun
     private void Start()
     {
         storedFireRate = fireRate;
+
+        BasicEvents.RecieveActivateAbility += ActivateAbility;
+
         //ActivateAbility(Abilities.RapidShot);
     }
 
@@ -40,7 +44,7 @@ public class DualGuns : OneBitGun
 
             if (Input.GetMouseButtonDown(0) || (Input.GetMouseButton(0) && automatic))
             {
-                if (Time.fixedTime > shotCooldownEnd && weaponMaster.FireBullet(ammoType))
+                if (Time.fixedTime >= shotCooldownEnd && weaponMaster.FireBullet(ammoType))
                 {
                     if (abilityActive)
                     {
@@ -77,7 +81,7 @@ public class DualGuns : OneBitGun
                         gunAudio.PlayOneShot(gunShotFX[0]);
                         for (int i = 0; i < pelletCount; i++)
                         {
-                            float shotgunSpread = Random.Range(-bulletSpread, bulletSpread);
+                           // float shotgunSpread = Random.Range(-bulletSpread, bulletSpread);
                             Instantiate(muzzleFlashPrefab, barrelTransform);
                             Instantiate(bulletPrefab, barrelTransform.position, barrelTransform.rotation);
                             
@@ -141,16 +145,18 @@ public class DualGuns : OneBitGun
             if (run && walk)
             {
                 gunAnimController.SetBool("Running", true);
-                gunAnimController2.SetBool("Running", true);
+               // gunAnimController2.SetBool("Running", true);
             }
             else
             {
                 gunAnimController.SetBool("Running", false);
-                gunAnimController2.SetBool("Running", false);
+               // gunAnimController2.SetBool("Running", false);
                 
             }
         }
     }
+
+
 
     public override void Reload()
     {
@@ -174,13 +180,47 @@ public class DualGuns : OneBitGun
         switch (inputAbility)
         {
             case Abilities.RapidShot:
-                timeToRapidShotEnd = Time.fixedTime + rapidShotLength;
-                abilityActive = true;
-                abilityType = Abilities.RapidShot;
-                automatic = true;
-                fireRate = 0.08f;
-                gunAnimController.speed = 2.5f;
+                StartCoroutine(RapidFireDuration());
+                break;
+            case Abilities.PowerShot:
+                StartCoroutine(PowerShotDuration()); 
                 break;
         }
+    }
+
+
+    private IEnumerator RapidFireDuration()
+    {
+        abilityActive = true;
+        abilityType = Abilities.RapidShot;
+        automatic = true;
+        fireRate = 0.08f;
+        gunAnimController.speed = 2.5f;
+
+        yield return new WaitForSeconds(5);
+
+        abilityActive = false;
+        abilityType = Abilities.RapidShot;
+        automatic = false;
+        fireRate = 0.2f;
+        gunAnimController.speed = 1f;
+    }
+
+
+    private IEnumerator PowerShotDuration()
+    {
+        abilityActive = true;
+        abilityType = Abilities.PowerShot;
+        automatic = false;
+        fireRate = 0.6f;
+        gunAnimController.speed = 0.7f;
+
+        yield return new WaitForSeconds(5);
+
+        abilityActive = false;
+        abilityType = Abilities.RapidShot;
+        automatic = false;
+        fireRate = 0.2f;
+        gunAnimController.speed = 1f;
     }
 }
