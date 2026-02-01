@@ -2,17 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player_MaskGun : MonoBehaviour
+public class Player_MaskGun : Player_MaskBase
 {
-    // Start is called before the first frame update
-    void Start()
+
+    public override void Ability1()
     {
-        
+        BasicEvents.SendActivateAbility(Abilities.PowerShot);
     }
 
-    // Update is called once per frame
-    void Update()
+
+    public override void Ability2()
     {
-        
+        BasicEvents.SendActivateAbility(Abilities.RapidShot);
     }
+
 }

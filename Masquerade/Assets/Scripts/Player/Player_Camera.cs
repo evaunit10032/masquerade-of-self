@@ -91,7 +91,7 @@ public class Player_Camera : MonoBehaviour
             else if (aiming) main_Camera.fieldOfView = Mathf.Lerp(main_Camera.fieldOfView, AimingFOV, (SpeedToFOV * 2f) * Time.deltaTime);
             else main_Camera.fieldOfView = Mathf.Lerp(main_Camera.fieldOfView, InstallFOV, SpeedToFOV * Time.deltaTime);
 
-            gun_Camera.fieldOfView = main_Camera.fieldOfView;
+            gun_Camera.fieldOfView = main_Camera.fieldOfView - 20f;
         }
 
         LeanUpdate();
