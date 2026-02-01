@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class NewBehaviourScript : MonoBehaviour
+public class EnemyWalkingAI : MonoBehaviour
 {
     [Header("References to Other Objects")]
     [SerializeField] private Transform[] patrolPoints;
@@ -17,7 +17,12 @@ public class NewBehaviourScript : MonoBehaviour
     [SerializeField] private float attackRange = 1.5f;
     [SerializeField] private bool canMoveWhileAttacking = false;
     [SerializeField] private float lurkingDuration = 3f;
+    [Header("Genetal Settings")]
+    [SerializeField] private float movementSpeed = 3.5f;
+    [SerializeField] private float health = 3f;
+    [SerializeField] private float magicalBarrier = 0f;
 
+//private fields
     private NavMeshAgent _agent;
     private Animator _animator;
     private int _currentPatrolIndex = 0;
@@ -26,6 +31,8 @@ public class NewBehaviourScript : MonoBehaviour
     private float _timeSinceLastSeenPlayer;
     private bool _isAttacking;
     private Vector3 _lastKnownPlayerPosition;
+//public fields
+    public bool hasMagicalBarrier;
 
     private enum EnemyState
     {
@@ -111,12 +118,13 @@ public class NewBehaviourScript : MonoBehaviour
         }
         
         _isAttacking = true;
-        _animator.SetTrigger("attack");
+        //_animator.SetTrigger("attack");
         //Don't forgor, once we get the animation event, call FinishAttack after that amount of time
+        Invoke(nameof(FinishAttack), 1.0f); //Assuming attack animation lasts 1 second
     }
 
 //This method can be invoked by
-    private void FinishAttack()
+    public void FinishAttack()
     {
         _isAttacking = false;
         if (!canMoveWhileAttacking)
@@ -125,10 +133,31 @@ public class NewBehaviourScript : MonoBehaviour
         }
     }
 
+    public void TakeDamage(float damage)
+    {
+        if (hasMagicalBarrier)
+        {
+            magicalBarrier -= damage;
+            if (magicalBarrier <= 0f)
+            {
+                hasMagicalBarrier = false;
+            }
+        }
+        else 
+        {
+            health -= damage;
+            if (health <= 0)
+            {
+                //_animator.SetTrigger("die");
+                Destroy(gameObject);
+            }
+        }
+    }
+
     private void UpdateAnimations()
     {
         var isWalking = _agent.velocity.sqrMagnitude > 0.1f;
-        _animator.SetBool("isMoving", isWalking);
+        //_animator.SetBool("isMoving", isWalking);
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -205,7 +234,16 @@ public class NewBehaviourScript : MonoBehaviour
     void Awake()
     {
         _agent = GetComponent<NavMeshAgent>();
-        _animator = GetComponent<Animator>();
+        //_animator = GetComponent<Animator>();
         _currentState = EnemyState.Patrolling;
+        _agent.speed = movementSpeed;
+        if (magicalBarrier > 0f)
+        {
+            hasMagicalBarrier = true;
+        }
+        else
+        {
+            hasMagicalBarrier = false;
+        }
     }
 }
