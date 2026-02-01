@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class NewBehaviourScript : MonoBehaviour
+public class EnemyWalkingAI : MonoBehaviour
 {
     [Header("References to Other Objects")]
     [SerializeField] private Transform[] patrolPoints;
@@ -17,7 +17,13 @@ public class NewBehaviourScript : MonoBehaviour
     [SerializeField] private float attackRange = 1.5f;
     [SerializeField] private bool canMoveWhileAttacking = false;
     [SerializeField] private float lurkingDuration = 3f;
+    [Header("Genetal Settings")]
+    [SerializeField] private float movementSpeed = 3.5f;
+    [SerializeField] private float health = 3f;
+    [SerializeField] private float magicalBarrier = 0f;
+    [SerializeField] private float staggeredTime = 3f;
 
+//private fields
     private NavMeshAgent _agent;
     private Animator _animator;
     private int _currentPatrolIndex = 0;
@@ -26,16 +32,20 @@ public class NewBehaviourScript : MonoBehaviour
     private float _timeSinceLastSeenPlayer;
     private bool _isAttacking;
     private Vector3 _lastKnownPlayerPosition;
+    private float _elapsedTimeStaggered;
+//public fields
+    public bool hasMagicalBarrier;
 
-    private enum EnemyState
+    public enum EnemyState
     {
         Patrolling,
         Chasing,
         Attacking, 
-        searching
+        searching,
+        Dying
     }
 
-    private IEnumerator WaitAtPatrolPoint()
+    public IEnumerator WaitAtPatrolPoint()
     {
         _isWaiting = true;
         _agent.isStopped = true;
@@ -46,7 +56,7 @@ public class NewBehaviourScript : MonoBehaviour
         _isWaiting = false;
     }
 
-    private void GoToNextPatrolPoint()
+    public void GoToNextPatrolPoint()
     {
         if (patrolPoints.Length == 0) return;
 
@@ -54,14 +64,14 @@ public class NewBehaviourScript : MonoBehaviour
         _currentPatrolIndex = (_currentPatrolIndex + 1) % patrolPoints.Length;
     }
 
-    private bool IsFacingPlayer()
+    public bool IsFacingPlayer()
     {
         var directionToPlayer = (playerTransform.position - transform.position).normalized;
         var angle = Vector3.Angle(transform.forward, directionToPlayer);
         return angle < viewAngle / 2f;
     }
 
-    private bool HasClearPathToPlayer()
+    public bool HasClearPathToPlayer()
     {
         var directionToPlayer = playerTransform.position - transform.position;
         if (Physics.Raycast(transform.position, directionToPlayer.normalized, out RaycastHit hit, directionToPlayer.magnitude))
@@ -72,24 +82,24 @@ public class NewBehaviourScript : MonoBehaviour
         return true;
     }
 
-    private bool CanSeePlayer()
+    public bool CanSeePlayer()
     {
         return IsFacingPlayer() && HasClearPathToPlayer();
     }
 
-    private void FollowPlayer()
+    public void FollowPlayer()
     {
         _agent.SetDestination(playerTransform.position);
         _lastKnownPlayerPosition = playerTransform.position;
     }
 
-    private void LurkAtLastKnownPosition()
+    public void LurkAtLastKnownPosition()
     {
         _agent.SetDestination(_lastKnownPlayerPosition);
     }
 
 
-    private void Patrol()
+    public void Patrol()
     {
         if (_isWaiting) return;
 
@@ -103,7 +113,7 @@ public class NewBehaviourScript : MonoBehaviour
         }
     }
 
-    private void StartAttack()
+    public void StartAttack()
     {
         if (!canMoveWhileAttacking)
         {
@@ -113,21 +123,58 @@ public class NewBehaviourScript : MonoBehaviour
         _isAttacking = true;
         _animator.SetTrigger("attack");
         //Don't forgor, once we get the animation event, call FinishAttack after that amount of time
+        Invoke(nameof(FinishAttack), 4.667f); //Assuming attack animation lasts 1 second
     }
 
 //This method can be invoked by
-    private void FinishAttack()
+    public void FinishAttack()
     {
         _isAttacking = false;
-        if (!canMoveWhileAttacking)
+        _agent.isStopped = false;
+
+        TakeDamage(1f); // Example damage value
+    }
+
+    public void TakeDamage(float damage)
+    {
+        if (hasMagicalBarrier)
         {
-            _agent.isStopped = false;
+            magicalBarrier -= damage;
+            if (magicalBarrier <= 0f)
+            {
+                hasMagicalBarrier = false;
+            }
+        }
+        else 
+        {
+            health -= damage;
+            if (health <= 0)
+            {
+                _animator.SetTrigger("die");
+                _currentState = EnemyState.Dying;
+                Destroy(gameObject, 6.733f);
+            }
+            _agent.isStopped = true;
+            _elapsedTimeStaggered = 0f;
+            _agent.speed = 0f;
         }
     }
 
-    private void UpdateAnimations()
+    public void IncreaseSpeed()
     {
-        var isWalking = _agent.velocity.sqrMagnitude > 0.1f;
+        _elapsedTimeStaggered += Time.deltaTime;
+        float staggerProgress = _elapsedTimeStaggered / staggeredTime;
+        _agent.speed = Mathf.Lerp(0f, movementSpeed, staggerProgress);
+    }
+
+    public IEnumerator WaitForATime(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+    }
+
+    public void UpdateAnimations()
+    {
+        bool isWalking = (_agent.velocity.sqrMagnitude > 0.1f);
         _animator.SetBool("isMoving", isWalking);
     }
 
@@ -142,6 +189,14 @@ public class NewBehaviourScript : MonoBehaviour
     {
         var distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
+        Debug.Log("Current State: " + _agent.speed.ToString());
+
+
+        //Add animation here
+        _animator.SetFloat("WalkingSpeed", _agent.speed);
+
+
+
         switch (_currentState)
         {
             case EnemyState.Patrolling:
@@ -149,6 +204,10 @@ public class NewBehaviourScript : MonoBehaviour
                 if (distanceToPlayer <= detectionRange && CanSeePlayer())
                 {
                     _currentState = EnemyState.Chasing;
+                }
+                if (_agent.speed < movementSpeed)
+                {
+                    IncreaseSpeed();
                 }
                 break;
             
@@ -174,6 +233,11 @@ public class NewBehaviourScript : MonoBehaviour
                 {
                     _timeSinceLastSeenPlayer = 0f;
                 }
+
+                if (_agent.speed < movementSpeed)
+                {
+                    IncreaseSpeed();
+                }
                 break;
             case EnemyState.Attacking:
                 if (!_isAttacking && distanceToPlayer > attackRange)
@@ -196,6 +260,10 @@ public class NewBehaviourScript : MonoBehaviour
                     LurkAtLastKnownPosition();
                 }
                 break;
+            case EnemyState.Dying:
+                _agent.isStopped = true;
+                _agent.speed = 0f;
+                break;
         }
 
         Patrol();
@@ -207,5 +275,23 @@ public class NewBehaviourScript : MonoBehaviour
         _agent = GetComponent<NavMeshAgent>();
         _animator = GetComponent<Animator>();
         _currentState = EnemyState.Patrolling;
+        _agent.speed = movementSpeed;
+        if (magicalBarrier > 0f)
+        {
+            hasMagicalBarrier = true;
+        }
+        else
+        {
+            hasMagicalBarrier = false;
+        }
     }
+
+
+
+    /*void OnTriggerEnter(Collider other)
+    {
+
+        if(other.CompareTag("GameController"))
+            StartAttack();
+    }*/
 }
