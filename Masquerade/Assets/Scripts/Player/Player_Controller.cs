@@ -153,8 +153,9 @@ public class Player_Controller : MonoBehaviour
 
         if (Input.GetKeyDown(crouchKey) && !isCrouch && isRunning)
         {
-            footStepPlayer.clip = move_sound_clips[1];
-            footStepPlayer.Play();
+            Debug.Log("Sliding");
+            //footStepPlayer.clip = move_sound_clips[1];
+            //footStepPlayer.Play();
 
             playerMaster.Get_P_Anims().SetAnimBool("Sliding", true);
             slideStartForwards = forward;
