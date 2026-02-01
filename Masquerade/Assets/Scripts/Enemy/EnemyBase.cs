@@ -7,22 +7,22 @@ using UnityEngine.AI;
 public class EnemyBase : MonoBehaviour
 {
     [Header("References to Other Objects")]
-    [SerializeField] private Transform[] patrolPoints;
-    [SerializeField] private Transform playerTransform;
+    [SerializeField] public Transform[] patrolPoints;
+    [SerializeField] public Transform playerTransform;
     [Header("Patrol Settings")]
-    [SerializeField] private float patrolWaitTime = 2f;
-    [SerializeField] private float stopAtDistance = 0.5f;
-    [SerializeField] private float detectionRange = 5f;
-    [SerializeField] private float viewAngle = 90f;
-    [SerializeField] private float disengageTime = 5f;
-    [SerializeField] private float attackRange = 1.5f;
-    [SerializeField] private bool canMoveWhileAttacking = false;
-    [SerializeField] private float lurkingDuration = 3f;
+    [SerializeField] public float patrolWaitTime = 2f;
+    [SerializeField] public float stopAtDistance = 0.5f;
+    [SerializeField] public float detectionRange = 5f;
+    [SerializeField] public float viewAngle = 90f;
+    [SerializeField] public float disengageTime = 5f;
+    [SerializeField] public float attackRange = 1.5f;
+    [SerializeField] public bool canMoveWhileAttacking = false;
+    [SerializeField] public float lurkingDuration = 3f;
     [Header("General Settings")]
-    [SerializeField] private float movementSpeed = 3.5f;
-    [SerializeField] private float health = 3f;
-    [SerializeField] private float magicalBarrier = 0f;
-    [SerializeField] private float staggeredTime = 3f;
+    [SerializeField] public float movementSpeed = 3.5f;
+    [SerializeField] public float health = 3f;
+    [SerializeField] public float magicalBarrier = 0f;
+    [SerializeField] public float staggeredTime = 3f;
 
 //private fields
     public NavMeshAgent _agent;
@@ -85,8 +85,11 @@ public class EnemyBase : MonoBehaviour
 
     public virtual bool CanSeePlayer()
     {
-        return IsFacingPlayer() && HasClearPathToPlayer();
+        Debug.Log("can see player");
+        //return IsFacingPlayer() && HasClearPathToPlayer();
+        return HasClearPathToPlayer();
     }
+    
 
     public virtual void FollowPlayer()
     {
@@ -180,13 +183,13 @@ public class EnemyBase : MonoBehaviour
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public virtual void Start()
     {
         GoToNextPatrolPoint();
     }
 
     // Update is called once per frame
-    void Update()
+    public virtual void Update()
     {
         var distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
@@ -271,7 +274,7 @@ public class EnemyBase : MonoBehaviour
         UpdateAnimations();
     }
 
-    void Awake()
+    public virtual void Awake()
     {
         _agent = GetComponent<NavMeshAgent>();
         _animator = GetComponent<Animator>();
