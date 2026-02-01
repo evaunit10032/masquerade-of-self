@@ -9,6 +9,7 @@ public class Player_MaskBase : MonoBehaviour
     [SerializeField] GameObject maskModel;
 
 
+
     public virtual void Ability1()
     {
 
@@ -20,4 +21,10 @@ public class Player_MaskBase : MonoBehaviour
 
     }
 
+}
+
+
+public enum Abilities{
+    PowerShot,
+    RapidShot
 }

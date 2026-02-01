@@ -152,7 +152,12 @@ public class Player_WeaponMaster : MonoBehaviour
         if (currentWeapon.loadedAmmo > 0)
         {
             UIEvents.SendCrosshairState(Crosshair_States.Expand, currentWeapon.fireRate);
-            currentWeapon.loadedAmmo--;
+
+            if(!currentWeapon.automatic)
+            {
+                currentWeapon.loadedAmmo--;
+            }
+            
             UpdateUI();
             BulletRaycast();
             return true;
@@ -174,6 +179,10 @@ public class Player_WeaponMaster : MonoBehaviour
         if (storedBullets[currentWeaponAmmoType] > 0 && currentWeapon.loadedAmmo != currentWeapon.clipSize)
         {
             int freshBullets = currentWeapon.clipSize - currentWeapon.loadedAmmo;
+
+            currentWeapon.loadedAmmo += freshBullets;
+
+            /*
             if (storedBullets[currentWeaponAmmoType] - freshBullets < 0)
             {
                 freshBullets = freshBullets - storedBullets[currentWeaponAmmoType];
@@ -184,7 +193,7 @@ public class Player_WeaponMaster : MonoBehaviour
             {
                 currentWeapon.loadedAmmo += freshBullets;
                 storedBullets[currentWeaponAmmoType] -= freshBullets;
-            }
+            }*/
 
 
             Debug.Log("Reloading");

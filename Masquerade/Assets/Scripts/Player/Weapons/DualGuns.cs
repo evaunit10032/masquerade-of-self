@@ -9,26 +9,85 @@ public class DualGuns : OneBitGun
 
     public float shotCooldownEnd2 = 0f;
 
+    [SerializeField] float powerShotCooldown;
+
+    float storedFireRate;
+
+    float timeToRapidShotEnd;
+
+    [SerializeField] float rapidShotLength = 5f;
+
 
 
     bool rightGunFiredLast = false;
 
 
+    private void Start()
+    {
+        storedFireRate = fireRate;
+        //ActivateAbility(Abilities.RapidShot);
+    }
+
+
     // Update is called once per frame
     void Update()
     {
+
+
         if (gameObject.activeSelf && Cursor.lockState == CursorLockMode.Locked)
         {
             gunAudio.pitch = Time.timeScale;
+
             if (Input.GetMouseButtonDown(0) || (Input.GetMouseButton(0) && automatic))
             {
                 if (Time.fixedTime > shotCooldownEnd && weaponMaster.FireBullet(ammoType))
                 {
+                    if (abilityActive)
+                    {
+                        if (abilityType == Abilities.PowerShot)
+                        {
+                            gunAnimController.SetTrigger("Fire");
+                            gunAudio.PlayOneShot(gunShotFX[0]);
+                            for (int i = 0; i < pelletCount; i++)
+                            {
+                                float shotgunSpread = Random.Range(-bulletSpread, bulletSpread);
+                                Instantiate(muzzleFlashPrefab, barrelTransform);
+                                Instantiate(bulletPrefab, barrelTransform.position, barrelTransform.rotation);
+                            }
 
+                            abilityActive = false;
+                            shotCooldownEnd = Time.fixedTime + fireRate + 1f;
 
-                    //gunAudio.PlayOneShot(gunShotFX[Random.Range(0, gunShotFX.Count)]);
+                        } else if (abilityType == Abilities.RapidShot)
+                        {
+                            gunAnimController.SetTrigger("Fire");
+                            gunAudio.PlayOneShot(gunShotFX[0]);
+                            for (int i = 0; i < pelletCount; i++)
+                            {
+                                float shotgunSpread = Random.Range(-bulletSpread, bulletSpread);
+                                Instantiate(muzzleFlashPrefab, barrelTransform);
+                                Instantiate(bulletPrefab, barrelTransform.position, barrelTransform.rotation);
 
-                    if (!rightGunFiredLast)
+                            }
+                            shotCooldownEnd = Time.fixedTime + fireRate;
+                        }
+                    } else
+                    {
+                        gunAnimController.SetTrigger("Fire");
+                        gunAudio.PlayOneShot(gunShotFX[0]);
+                        for (int i = 0; i < pelletCount; i++)
+                        {
+                            float shotgunSpread = Random.Range(-bulletSpread, bulletSpread);
+                            Instantiate(muzzleFlashPrefab, barrelTransform);
+                            Instantiate(bulletPrefab, barrelTransform.position, barrelTransform.rotation);
+                            
+                        }
+                        shotCooldownEnd = Time.fixedTime + fireRate;
+                    }
+
+                        //gunAudio.PlayOneShot(gunShotFX[Random.Range(0, gunShotFX.Count)]);
+                        
+                    /*if (!rightGunFiredLast)
                     {
                         rightGunFiredLast = true;
                         gunAnimController.SetTrigger("Fire");
@@ -51,9 +110,9 @@ public class DualGuns : OneBitGun
                             Instantiate(muzzleFlashPrefab, barrelTransform2);
                             Instantiate(bulletPrefab, barrelTransform2.position, barrelTransform2.rotation);
                         }
-                    }
+                    }*/
 
-                    shotCooldownEnd = Time.fixedTime + fireRate;
+                    //shotCooldownEnd = Time.fixedTime + fireRate;
                 }
 
 
@@ -107,5 +166,21 @@ public class DualGuns : OneBitGun
             timeUntilInspect = Time.fixedTime + Random.Range(10f, 20f);
         }
 
+    }
+
+
+    public void ActivateAbility(Abilities inputAbility)
+    {
+        switch (inputAbility)
+        {
+            case Abilities.RapidShot:
+                timeToRapidShotEnd = Time.fixedTime + rapidShotLength;
+                abilityActive = true;
+                abilityType = Abilities.RapidShot;
+                automatic = true;
+                fireRate = 0.08f;
+                gunAnimController.speed = 2.5f;
+                break;
+        }
     }
 }

@@ -27,9 +27,11 @@ public class OneBitGun : MonoBehaviour
 
     public bool automatic;
 
-    public Player_WeaponMaster weaponMaster;   
+    public Player_WeaponMaster weaponMaster;
 
+    public bool abilityActive = false;
 
+    public Abilities abilityType;
 
 
 
@@ -87,6 +89,8 @@ public class OneBitGun : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        
+
         if (gameObject.activeSelf && Cursor.lockState == CursorLockMode.Locked)
         {
             //gunAudio.pitch = Time.timeScale;
@@ -123,6 +127,17 @@ public class OneBitGun : MonoBehaviour
             autoShotsFired = 0;
         }
 
+    }
+
+    public virtual void Shoot()
+    {
+        if (abilityActive)
+        {
+            if (abilityType == Abilities.PowerShot)
+            {
+
+            }
+        }
     }
 
     public virtual void Reload()
