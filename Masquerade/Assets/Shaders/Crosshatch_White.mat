@@ -111,8 +111,8 @@ Material:
     - _Surface: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
-    - _cornerDist: 2
-    - _size: 11.44
+    - _cornerDist: 15
+    - _size: 7
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
